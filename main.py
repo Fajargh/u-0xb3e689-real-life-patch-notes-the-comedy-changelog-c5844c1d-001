@@ -16,20 +16,24 @@ MAX_CHARS = 160
 OUTPUT_PATH = "/output/entry.txt"
 
 
-def validate(line: str) -> None:
-    """Gate: the entry must be a single non-blank line of 1-160 characters."""
+def validate_line(line: str) -> None:
+    """Gate: the entry must be a single non-blank UTF-8 line of 1-160 chars."""
     if not line or not line.strip():
         raise ValueError("entry is blank")
     if "\n" in line or "\r" in line:
         raise ValueError("entry must be a single line")
-    if len(line) > MAX_CHARS:
+    if not 1 <= len(line) <= MAX_CHARS:
         raise ValueError(
-            f"entry is {len(line)} characters, over the {MAX_CHARS} limit"
+            f"entry is {len(line)} characters, must be 1-{MAX_CHARS}"
         )
+    try:
+        line.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValueError("entry is not valid UTF-8") from exc
 
 
 def main() -> int:
-    validate(ENTRY)
+    validate_line(ENTRY)
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8", newline="\n") as f:
         f.write(ENTRY + "\n")
